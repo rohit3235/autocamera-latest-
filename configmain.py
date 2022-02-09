@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 # used for relative path calculation
-import os
-import numpy as np
-import math
-import cv2
-from skimage.metrics import structural_similarity as ssim
-from PIL import Image
-
-import warnings
 import csv
-# this import are for brisque
-from skimage import io, img_as_float
+import math
+import os
 #import imquality.brisque as brisque
 import traceback
+import warnings
 from configparser import ConfigParser
+
+import cv2
+import numpy as np
+# this import are for brisque
+from skimage import img_as_float, io
+from skimage.metrics import structural_similarity as ssim
+
 #global_path = "C:/Users/admin/Documents/Dashboard_Camera_Testing"
 #global_path = "C:/Users/arun_/Downloads/CanProjects/AutomatedCamera/AutomatedCamera/autocamera"
 #global_path = "C:/Users/arun_/Downloads/CanProjects/AutomatedCamera/AutomatedCameraArun"

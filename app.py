@@ -1,59 +1,63 @@
-#app_bkp02Feb
-from flask import Flask
-from flask_restful import Resource, Api, reqparse
-import pandas as pd
-import os
+# app_bkp02Feb
 import ast
 import json
+import os
+
+import pandas as pd
+from flask import Flask
+from flask_restful import Api, Resource, reqparse
+
+from configmain import *
+from imgtests import *
 ####
 from report import *
-from imgtests import *
-from configmain import *
+
 ####
 
 app = Flask(__name__)
 api = Api(app)
 
-#@app.route('/')
-#def hello_world():
+# @app.route('/')
+# def hello_world():
 #    return "Hello Docker"
 
 
 class Places(Resource):
     def post(self):
-    # parse request arguments
+        # parse request arguments
         parser = reqparse.RequestParser()
         parser.add_argument("camid", required=True)
         parser.add_argument("image1test", required=True)
         parser.add_argument("image2perfect", required=True)
         args = parser.parse_args()
 ##############
-        camid =args.camid
-        image1test =args.image1test
-        image2perfect =args.image2perfect
+        camid = args.camid
+        image1test = args.image1test
+        image2perfect = args.image2perfect
         #image1test_path = os.path.join(IMAGE_FOLD_PATH,'\autocameratest2\data\TestImages',args.image1test)
         #image2perfect_path = os.path.join(IMAGE_FOLD_PATH,'\autocameratest2\data\TestImages',args.image2perfect)
 
-        
-        image1test_path = os.path.join('data','TestImages',image1test)
-        image2perfect_path = os.path.join('data','TestImages',image2perfect)
+        image1test_path = os.path.join('data', 'TestImages', image1test)
+        image2perfect_path = os.path.join('data', 'TestImages', image2perfect)
 
         import pathlib
+
         #image1test_path = pathlib.Path.cwd().joinpath('data', 'TestImages', args.image1test)
         #image2perfect_path = pathlib.Path.cwd().joinpath('data', 'TestImages', args.image2perfect)
-        
         #image1test_path = pathlib.Path('data', 'TestImages', args.image1test)
         #image2perfect_path = pathlib.Path('data', 'TestImages', args.image2perfect)
 
-
-        test_results = generate_report(camid, image1test_path, image2perfect_path)
+        test_results = generate_report(
+            camid, image1test_path, image2perfect_path)
         #test_names = ['CamId','Blur','check_scale','noise','scrolled','allign','mirror','blackspots','ssim_score','brisque_score']
-        test_names = ['CamId','Blur','check_scale','noise','scrolled','allign','mirror','blackspots','ssim_score','staticlines','rotation_deg']
-        #print("pass:0/fail:1or>1")
-        dict_results = {test_names[i]: test_results[i] for i in range(0,len(test_names))}
-        json_results = json.dumps(dict_results, indent = 4)  
+        test_names = ['CamId', 'Blur', 'check_scale', 'noise', 'scrolled', 'allign',
+                      'mirror', 'blackspots', 'ssim_score', 'staticlines', 'rotation_deg']
+        # print("pass:0/fail:1or>1")
+        dict_results = {test_names[i]: test_results[i]
+                        for i in range(0, len(test_names))}
+        json_results = json.dumps(dict_results, indent=4)
 
-        return json_results,201
+        return json_results, 201
 
 
 api.add_resource(Places, '/places')

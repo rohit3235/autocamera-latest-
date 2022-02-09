@@ -1,8 +1,9 @@
-from flask import Flask
-from flask_restful import Resource, Api, reqparse
-import pandas as pd
-import os
 import ast
+import os
+
+import pandas as pd
+from flask import Flask
+from flask_restful import Api, Resource, reqparse
 
 app = Flask(__name__)
 api = Api(app)
@@ -24,11 +25,12 @@ DATA = {
          'paris',
          'berlin',
          'barcelona']
-}         
+}
+
 
 class Places(Resource):
     def post(self):
-    # parse request arguments
+        # parse request arguments
         parser = reqparse.RequestParser()
         parser.add_argument('location', required=True)
         parser.add_argument('location', required=True)
@@ -36,14 +38,15 @@ class Places(Resource):
         args = parser.parse_args()
 # check if we already have the location in places list
         if args['location'] in DATA['places']:
-        # if we do, return 401 bad request
+            # if we do, return 401 bad request
             return {
-            'message': f"'{args['location']}' already exists."
+                'message': f"'{args['location']}' already exists."
             }, 401
         else:
-        # otherwise, add the new location to places
+            # otherwise, add the new location to places
             DATA['places'].append(args['location'])
         return {'data': DATA}, 200
+
 
 api.add_resource(Places, '/places')
 
