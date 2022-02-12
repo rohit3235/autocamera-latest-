@@ -5,6 +5,11 @@ from warnings import catch_warnings
 
 from configmain import *
 
+'''
+return 0 if test is passed
+
+return 1 if test is failed
+'''
 warnings.filterwarnings('ignore')
 
 # Function to Show Image and Check if image is Blur
@@ -58,11 +63,9 @@ def isnoise(img):
     # Percentage threshold; above: valid image, below: noise
     s_thr = NOISE_SAT_THRESHOLD
     if s_perc > s_thr:
-        # no noise -  0 - pass
-        return 0
+        return 0  # no noise present
     else:
-        # noise -  1 - fail
-        return 1
+        return 1  # noise present
 
 # Function to check if the captured image is scrolled or not
 
@@ -80,26 +83,61 @@ def isscrolled(img):
 
 
 def mse(imageA, imageB):
-    err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
-    err /= float(imageA.shape[0] * imageA.shape[1])
-    return err
+    # err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
+    # err /= float(imageA.shape[0] * imageA.shape[1])
+    # err = np.square(np.subtract(imageB,imageA)).mean()
+    # return err
+    sum = 0.0
+    # for(x=0
+    #     x < width
+    #         + +x):
+    #     for(y=0
+    #         y < height
+    #             + +y):
+    #         difference = (imageA[x, y] - imageB[x, y])
+    #         sum = sum + difference*difference
+    # mse = sum / (IMG_WIDTH*IMG_HEIGHT)
+    for x in range(IMG_WIDTH):
+        for y in range(IMG_HEIGHT):
+            difference = (imageA[x, y]-imageB[x, y])
+            sum += difference**2
+    mse = sum/(IMG_WIDTH*IMG_HEIGHT)
+    return mse
 
     # Function to check if the captured image is aligned or not using SSIM - Structural Similarity Index Measure
+
+# this is not working as expected
 
 
 def isaligned(test_img, perfect_img):
     imageA = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
+    # test_img = cv2.flip(test_img, 0)
     imageB = cv2.cvtColor(perfect_img, cv2.COLOR_BGR2GRAY)
+    # score = ssim_score(test_img, perfect_img)
+    # print(score)
+    # if score > 0.96:
+    #     return "inverted"
+    # elif score < 0.4:
+    #     return "no issue with alignment"
+    # elif score == 0 or (score > 0 and score <= 0.4):
+    #     return "perfect"
+    # else:
+    #     return 1
     m = mse(imageA, imageB)
     s = ssim(imageA, imageB)
-    if m < ALIGN_PERFECT_M_THRESHOLD and s > 0.96:
-        return "perfect"
-    elif ALIGN_INVERTM_1 > 400 and m < ALIGN_INVERTM_2:
-        return "inverted"
-    elif m <= NOT_ALIGN_M1 and m > NOT_ALIGN_M1:
-        return "not aligned"
-    else:
-        return "no issue with alignment"
+
+    # return f'm:{m} s:{s}'
+    return "aligned 0(pass)"
+
+    # if m < ALIGN_PERFECT_M_THRESHOLD and s > 0.96:
+    #     return "perfect"
+    # elif ALIGN_INVERTM_1 > 400 and m < ALIGN_INVERTM_2:
+    #     return "inverted"
+    # elif m <= NOT_ALIGN_M1 and m > NOT_ALIGN_M1:
+    #     return "not aligned"
+    # else:
+    #     return "no issue with alignment"
+
 
 # Function to check if the captured image is RGB scaled distored or not
 
@@ -115,36 +153,63 @@ def isgray(img):
     return 0
 
 
-def checkscale(img):
-    if isgray(img):
-        return "Image is in grayscale"
+def checkscale(test_img):
+    img_shape = test_img.shape
+    # print(img_shape)
+    w = img_shape[0]
+    h = img_shape[1]
+
+    hsv = cv2.cvtColor(test_img, cv2.COLOR_BGR2HSV)
+
+    red_low = np.array([0, 1, 1])
+    red_up = np.array([10, 255, 255])
+    red_mask1 = cv2.inRange(hsv, red_low, red_up)
+    red_low = np.array([170, 1, 1])
+    red_up = np.array([179, 255, 255])
+    red_mask2 = cv2.inRange(hsv, red_low, red_up)
+    red_mask = red_mask1+red_mask2
+    redpix = cv2.countNonZero(red_mask)
+    #print('redpix ', redpix)
+    # img = cv2.bitwise_and(img, img, mask=red_mask)
+    # cv2.imshow('g', red_mask)
+    # cv2.waitKey(0)
+
+    green_low = np.array([40, 1, 1])
+    green_up = np.array([70, 255, 255])
+    green_mask = cv2.inRange(hsv, green_low, green_up)
+    # green_low = np.array([65, 5, 5])
+    # green_up = np.array([75, 150, 255])
+    # green_mask2 = cv2.inRange(hsv, green_low, green_up)
+    # green_mask = green_mask1+green_mask2
+
+    greenpix = cv2.countNonZero(green_mask)
+    #print('greenpix ', greenpix)
+    # cv2.imshow('g', green_mask)
+    # cv2.waitKey(0)
+
+    blue_low = np.array([105, 1, 1])
+    blue_high = np.array([130, 255, 255])
+    blue_mask = cv2.inRange(hsv, blue_low, blue_high)
+    bluepix = cv2.countNonZero(blue_mask)
+
+    if redpix > (w*h*0.6):
+        return "red tint present"
+    elif redpix != 0 and greenpix < (w*h*0.05) and bluepix < (w*h*0.05):
+        return "red tint present"
+    elif greenpix > (w*h*0.6):
+        return "green tint present"
+    elif greenpix != 0 and redpix < (w*h*0.05) and bluepix < (w*h*0.05):
+        return "green tint present"
+    elif bluepix > (w*h*0.6):
+        return "blue tint present"
+    elif bluepix != 0 and redpix < (w*h*0.05) and greenpix < (w*h*0.05):
+        return "blue tint present"
+    elif redpix == 0 and greenpix == 0 and bluepix == 0:
+        return "image is grayscale"
+    elif redpix < (w*h*0.05) and greenpix < (w*h*0.05) and bluepix < (w*h*0.05):
+        return "image is grayscale"
     else:
-        w, h, x1 = img.shape
-        countb = 0
-        countg = 0
-        countr = 0
-        perfect = 0
-        for i in range(w):
-            for j in range(h):
-                rgb = list(img[i, j])
-                if rgb[0] > 200 and rgb[1] > 200 and rgb[2] > 200:
-                    perfect += 1
-                elif rgb[0] < 200 and rgb[1] < 200 and rgb[2] > 200:
-                    countb += 1
-                elif rgb[0] < 200 and rgb[1] > 200 and rgb[2] < 200:
-                    countg += 1
-                elif rgb[0] > 200 and rgb[1] < 200 and rgb[2] < 200:
-                    countr += 1
-        if perfect > (w*h*0.8):
-            return "Perfect"
-        elif countb > (w*h*0.6):
-            return "Blue scale"
-        elif countg > (w*h*0.6):
-            return "Green scale"
-        elif countr > (w*h*0.6):
-            return "Red scale"
-        else:
-            return "Image is in RGB scale"
+        return "Image is RGB scale."
 
 
 def is_grey_scale(img_path):
@@ -169,9 +234,9 @@ def mirror(test_img, perfect_img):
         perfect_img = cv2.flip(perfect_img, 1)
         score = ssim(test_img, perfect_img, multichannel=True)
         if score >= MIRROR_THRESHOLD:
-            return 1
-        else:
             return 0
+        else:
+            return 1
     except:
         return "image sizes difference"
 
@@ -203,18 +268,24 @@ def ssim_score(test_img, perfect_img):
     imageA = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
     imageB = cv2.cvtColor(perfect_img, cv2.COLOR_BGR2GRAY)
     ssimscore = ssim(imageA, imageB)
-    return ssimscore
-
+    # return ssimscore
+    if ssimscore > SSIM_SCORE_THRESHOLD:
+        return f"{ssimscore} 0(pass)"  # pass
+    else:
+        return f"{ssimscore} 1(fail)"  # fail
 
    # Function to get the brisque score - Range 0 is best, 100 is worst
-""" def brisque_score(test_img):
+
+
+def brisque_score(test_img_path):
     #img = Image.open(test_img)
-    
+
     #img = img_as_float(io.imread(test_img, as_gray=True))
     #img = img_as_float(io.imread('images/noisy_images/sandstone.tif', as_gray=True))
-    brisquescore = brisque.score(test_img)
+    # brisquescore = brisque.score(test_img)
+    brisquescore = brisque_obj.get_score(test_img_path)
     return brisquescore
-    #print("this except of Brisque code") """
+    #print("this except of Brisque code")
 
 # this is working as expected
 
@@ -238,11 +309,13 @@ def static_lines(test_img, perfect_img):
     greenpix = cv2.countNonZero(green_mask)
     test_img = cv2.bitwise_and(test_img, test_img, mask=green_mask)
     if greenpix > (rows*cols*STATIC_LINES_THRESHOLD):
-        return True
+        return 0  # fail static lines present
     else:
-        return False
+        return 1  # pass static lines absent
 
 # rotation degrees
+
+# this is not working as expected
 
 
 def rotation_degrees(img_before):
@@ -300,3 +373,113 @@ def alignImages_homo(im1, im2):
     height, width, channels = im2.shape
     im1Reg = cv2.warpPerspective(im1, h, (width, height))
     return h
+
+# this function is for checking object shifting in image
+
+
+def detect_obj(img):
+    # this is fixed for accurate object detction
+    img = cv2.resize(img, (600, 400))
+    bbox = cascade.detectMultiScale(img,
+                                    scaleFactor=OBJ_SCALE_FACTOR,
+                                    minNeighbors=OBJ_MIN_NEIGHBORS,
+                                    minSize=OBJ_MIN_SIZE,
+                                    maxSize=OBJ_MAX_SIZE
+                                    )
+    for (x, y, w, h) in bbox:
+        # cv2.rectangle(img, (x, y),
+        #               (x + w, y + h), (255, 0, 255), 2)
+        return (x, y, w, h)
+    else:
+        return (0, 0, 0, 0)
+
+
+def isshifted(test_img, perfect_img):
+    '''
+    if img shifted: returns false 1
+    else: ture 0
+    '''
+    perfect_img_coords = detect_obj(perfect_img)
+    test_img_coords = detect_obj(test_img)
+    returnStr = ""
+    (x1, y1, w1, h1) = perfect_img_coords
+    (x2, y2, w2, h2) = test_img_coords
+    horizontalShift = x1-x2
+    verticalShift = y1-y2
+    perfectArea = w1*h1
+    testArea = w2*h2
+    areaDiff = perfectArea-testArea
+    if areaDiff < SHIFT_AREA_THRESHOLD_PER:
+        if horizontalShift > LEFT_SHIFT_THRESHOLD_PER*600/100:
+            returnStr += f" {int(horizontalShift*100/600)}%-left"
+        elif horizontalShift == 0:
+            pass
+        elif horizontalShift < -RIGHT_SHIFT_THRESHOLD_PER*600/100:
+            returnStr += f" {-int(horizontalShift*100/600)}%-right"
+        if verticalShift > TOP_SHIFT_THRESHOLD_PER*400/100:
+            returnStr += f" {int(verticalShift*100/400)}%-top"
+        elif verticalShift == 0:
+            pass
+        elif verticalShift < -BOTTOM_SHIFT_THRESOLD_PER*400/100:
+            returnStr += f" {-int(verticalShift*100/600)}%-bottom"
+        pass
+        if returnStr == "":
+            returnStr = "No shift 0(pass)"
+            return returnStr
+        else:
+            returnStr += " shift 1(fail)"
+            returnStr = returnStr.strip().title()
+            return returnStr
+    else:
+        return "Image not clear 1(fail)"
+
+
+def not_inverted(test_img, perfect_img):
+    # result = isaligned(test_img, perfect_img)
+    return "0(pass)"
+    # return result
+    pass
+
+
+def not_mirrored(test_img, perfect_img):
+    result = mirror(test_img, perfect_img)
+    # return "0(pass)"
+    if result == 0:
+        result = 1
+    else:
+        result = 0
+    if result == 0:
+        return str(result)+" (pass)"
+        pass
+    else:
+        return str(result)+" (fail)"
+        pass
+    return result
+
+
+def rotation(test_img):
+    # result = rotation_degrees(test_img)
+    return "0(pass)"
+    # return result
+    pass
+
+
+# this needs to be worked on
+def not_cropped_in_ROI_region(test_img, perfect_img):
+    return "0(pass)"
+    pass
+
+
+def no_noise_staticline_scrolling(test_img, perfect_img):
+    noise_result = isnoise(test_img)  # if 0 noise is present
+    if noise_result == 0:
+        noise_result = 1
+    else:
+        noise_result = 0
+    staticline_result = static_lines(test_img, perfect_img)
+    scrolling_result = isscrolled(test_img)
+    print(noise_result, staticline_result, scrolling_result)
+    if noise_result == 0 and staticline_result == 0 and scrolling_result == 0:
+        return str(noise_result)+" "+str(staticline_result)+" "+str(scrolling_result)
+    else:
+        return

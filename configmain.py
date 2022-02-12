@@ -3,11 +3,11 @@
 import csv
 import math
 import os
-#import imquality.brisque as brisque
+import imquality.brisque as brisque
 import traceback
 import warnings
 from configparser import ConfigParser
-
+from brisque import BRISQUE
 import cv2
 import numpy as np
 # this import are for brisque
@@ -70,29 +70,30 @@ ROTATION_THRESHOLD = int(config['ROTATION']['ROTATION_THRESHOLD'])
 NOISE_SAT_THRESHOLD_PCT = float(
     config['NOISE']['NOISE_SAT_THRESHOLD_PCT'])
 NOISE_SAT_THRESHOLD = float(config['NOISE']['NOISE_SAT_THRESHOLD'])
+# shift thresholds
+LEFT_SHIFT_THRESHOLD_PER = int(
+    config['IMAGE_SHIFTING']['LEFT_SHIFT_THRESHOLD_PER'])
+RIGHT_SHIFT_THRESHOLD_PER = int(
+    config['IMAGE_SHIFTING']['RIGHT_SHIFT_THRESHOLD_PER'])
+TOP_SHIFT_THRESHOLD_PER = int(
+    config['IMAGE_SHIFTING']['TOP_SHIFT_THRESHOLD_PER'])
+BOTTOM_SHIFT_THRESOLD_PER = int(
+    config['IMAGE_SHIFTING']['BOTTOM_SHIFT_THRESOLD_PER'])
+SHIFT_AREA_THRESHOLD_PER = int(
+    config['IMAGE_SHIFTING']['SHIFT_AREA_THRESHOLD_PER'])
+OBJ_SCALE_FACTOR = float(config['IMAGE_SHIFTING']['OBJ_SCALE_FACTOR'])
+OBJ_MIN_NEIGHBORS = int(config['IMAGE_SHIFTING']['OBJ_MIN_NEIGHBORS'])
+OBJ_MIN_SIZE = eval(config['IMAGE_SHIFTING']['OBJ_MIN_SIZE'])
+OBJ_MAX_SIZE = eval(config['IMAGE_SHIFTING']['OBJ_MAX_SIZE'])
+CASCADE_PATH = config['IMAGE_SHIFTING']['CASCADE_PATH']
+# ssim score thresholds
+SSIM_SCORE_THRESHOLD = float(config['SSIM_SCORE']['SSIM_SCORE_THRESHOLD'])
+# brisque score threshold
+BRISQUE_SCORE_THRESHOLD = float(
+    config['BRISQUE_SCORE']['BRISQUE_SCORE_THRESHOLD'])
 
+# initialize cascade object detector
+cascade = cv2.CascadeClassifier(CASCADE_PATH)
 
-"""Reading data from config.ini file"""
-"""Load configuration from .ini file."""
-""" import configparser
-# Read local `config.ini` file.
-Config = configparser.ConfigParser()
-Config.read('config.ini')
-
-# Get values from our .ini file
-Config.get('perfectimagepath', 'testimagespath','testresultspath')
-Config['perfectimagepath'],['testimagespath'],['testresultspath']
-
-
-def ConfigSectionMap(section):
-    dict1 = {}
-    options = Config.options(section)
-    for option in options:
-        try:
-            dict1[option] = Config.get(section, option)
-            if dict1[option] == -1:
-                print("skip: %s" % option)
-        except:
-            print("exception on %s!" % option)
-            dict1[option] = None
-    return dict1 """
+# initialize BRISQUE score calculator obj
+brisque_obj = BRISQUE()

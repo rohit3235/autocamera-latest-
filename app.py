@@ -50,12 +50,28 @@ class Places(Resource):
         test_results = generate_report(
             camid, image1test_path, image2perfect_path)
         #test_names = ['CamId','Blur','check_scale','noise','scrolled','allign','mirror','blackspots','ssim_score','brisque_score']
-        test_names = ['CamId', 'Blur', 'check_scale', 'noise', 'scrolled', 'allign',
-                      'mirror', 'blackspots', 'ssim_score', 'staticlines', 'rotation_deg']
+        # test_names = ['CamId', 'Blur', 'check_scale', 'noise', 'scrolled', 'align', 'shift',
+        #               'mirror', 'blackspots', 'ssim_score', 'staticlines', 'rotation_deg']
         # print("pass:0/fail:1or>1")
+        test_names = ['CamID',
+                      'not_inverted',
+                      'not_mirrored',
+                      'rotation', 'not_cropped_in_ROI_region',
+                      'no_noise_staticline_scrolling',
+                      'blur',
+                      'check_scale',
+                      'noise',
+                      'scrolled',
+                      'rgb_layer_align',
+                      'image_shift',
+                      'mirror',
+                      'blackspots',
+                      'static_lines',
+                      'ssim_score',
+                      'brisque_score']
         dict_results = {test_names[i]: test_results[i]
                         for i in range(0, len(test_names))}
-        json_results = json.dumps(dict_results, indent=4)
+        json_results = json.dumps(dict_results,indent=4)
 
         return json_results, 201
 
