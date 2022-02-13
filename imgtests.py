@@ -380,6 +380,7 @@ def alignImages_homo(im1, im2):
 def detect_obj(img):
     # this is fixed for accurate object detction
     img = cv2.resize(img, (600, 400))
+    objDetected = False
     bbox = cascade.detectMultiScale(img,
                                     scaleFactor=OBJ_SCALE_FACTOR,
                                     minNeighbors=OBJ_MIN_NEIGHBORS,
@@ -387,17 +388,18 @@ def detect_obj(img):
                                     maxSize=OBJ_MAX_SIZE
                                     )
     for (x, y, w, h) in bbox:
+        objDetected = True
         # cv2.rectangle(img, (x, y),
         #               (x + w, y + h), (255, 0, 255), 2)
         return (x, y, w, h)
-    else:
+    if not objDetected:
         return (0, 0, 0, 0)
 
 
 def isshifted(test_img, perfect_img):
     '''
     if img shifted: returns false 1
-    else: ture 0
+    else: true 0
     '''
     perfect_img_coords = detect_obj(perfect_img)
     test_img_coords = detect_obj(test_img)

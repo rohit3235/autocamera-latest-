@@ -60,7 +60,7 @@ def generate_report(camid, test_img_path, perfect_img_path):
                           isnoise(test_img),
                           isscrolled(test_img),
                           isaligned(test_img, perfect_img),
-                          isshifted(test_img, perfect_img),
+                          isshifted(test_img_shift, perfect_img_shift),
                           mirror(test_img, perfect_img),
                           blackspots(test_img_path),
                           static_lines(test_img, perfect_img),
