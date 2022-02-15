@@ -1,12 +1,4 @@
 # app_bkp02Feb
-import ast
-import json
-import os
-
-import pandas as pd
-from flask import Flask
-from flask_restful import Api, Resource, reqparse
-
 from configmain import *
 from imgtests import *
 ####
@@ -40,8 +32,6 @@ class Places(Resource):
         image1test_path = os.path.join('data', 'TestImages', image1test)
         image2perfect_path = os.path.join('data', 'TestImages', image2perfect)
 
-        import pathlib
-
         #image1test_path = pathlib.Path.cwd().joinpath('data', 'TestImages', args.image1test)
         #image2perfect_path = pathlib.Path.cwd().joinpath('data', 'TestImages', args.image2perfect)
         #image1test_path = pathlib.Path('data', 'TestImages', args.image1test)
@@ -53,23 +43,34 @@ class Places(Resource):
         # test_names = ['CamId', 'Blur', 'check_scale', 'noise', 'scrolled', 'align', 'shift',
         #               'mirror', 'blackspots', 'ssim_score', 'staticlines', 'rotation_deg']
         # print("pass:0/fail:1or>1")
+        # test_names = ['CamID',
+        #               'not_inverted',
+        #               'not_mirrored',
+        #               'rotation',
+        #               'not_cropped_in_ROI_region',
+        #               'no_noise_staticline_scrolling',
+        #               'blur',
+        #               'check_scale',
+        #               'noise',
+        #               'scrolled',
+        #               'rgb_layer_align',
+        #               'image_shift',
+        #               'mirror',
+        #               'blackspots',
+        #               'static_lines',
+        #               'ssim_score',
+        #               'brisque_score']
         test_names = ['CamID',
-                      'not_inverted',
-                      'not_mirrored',
-                      'rotation',
-                      'not_cropped_in_ROI_region',
-                      'no_noise_staticline_scrolling',
-                      'blur',
-                      'check_scale',
-                      'noise',
-                      'scrolled',
-                      'rgb_layer_align',
-                      'image_shift',
-                      'mirror',
-                      'blackspots',
-                      'static_lines',
-                      'ssim_score',
-                      'brisque_score']
+                      'Image_Not_Inverted',
+                      'Image_Not_Mirrored',
+                      'Image_Not_Rotated',
+                      'Image_Horizontal_Shift',
+                      'Image_Vertical_Shift',
+                      'Image_Not_Cropped_In_ROI',
+                      'Image_Has_No_Noise_Staticlines_Scrolling',
+                      'SSIM',
+                      'Brisque_Score'
+                      ]
         dict_results = {test_names[i]: test_results[i]
                         for i in range(0, len(test_names))}
         json_results = json.dumps(dict_results, indent=4)

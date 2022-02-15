@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 # used for relative path calculation
-import csv
-import math
-import os
 import imquality.brisque as brisque
 import traceback
 import warnings
 from configparser import ConfigParser
 from brisque import BRISQUE
 import cv2
+import json
+import os
+import math
+import pandas as pd
+import ast
+from flask import Flask
+from flask_restful import Api, Resource, reqparse
 import numpy as np
 # this import are for brisque
 from skimage import img_as_float, io
@@ -37,7 +41,7 @@ LAP_THRESHOLD_BLUR = int(config['BLUR']['BLUR_LAP_THRESHOLD'])
 # scrolling thresholds
 SCROLL_THRESHOLD_1 = int(config['SCROLLING']['SCROLL_THRESHOLD_1'])
 SCROLL_THRESHOLD_2 = int(config['SCROLLING']['SCROLL_THRESHOLD_2'])
-SCROLL_COLORCNT = int(config['SCROLLING']['SCROLL_COLORCOUNT'])
+SCROLL_COLORCNT_PCT = int(config['SCROLLING']['SCROLL_COLORCOUNT_PCT'])
 # alignment thresholds
 ALIGN_PERFECT_M_THRESHOLD = int(
     config['ALIGNMENT']['ALIGN_PERFECT_M_THRESHOLD'])
@@ -87,7 +91,8 @@ OBJ_MIN_SIZE = eval(config['IMAGE_SHIFTING']['OBJ_MIN_SIZE'])
 OBJ_MAX_SIZE = eval(config['IMAGE_SHIFTING']['OBJ_MAX_SIZE'])
 CASCADE_PATH = config['IMAGE_SHIFTING']['CASCADE_PATH']
 # ssim score thresholds
-SSIM_SCORE_THRESHOLD = float(config['SSIM_SCORE']['SSIM_SCORE_THRESHOLD'])
+SSIM_SCORE_THRESHOLD_PCT = int(
+    config['SSIM_SCORE']['SSIM_SCORE_THRESHOLD_PCT'])
 # brisque score threshold
 BRISQUE_SCORE_THRESHOLD = float(
     config['BRISQUE_SCORE']['BRISQUE_SCORE_THRESHOLD'])
