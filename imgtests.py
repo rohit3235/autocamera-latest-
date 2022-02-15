@@ -66,7 +66,17 @@ def Image_Not_Scrolled(img):
 
     edges = cv2.Canny(image=img_blur, threshold1=100, threshold2=200)
 
+    # HSV_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+    # lower_white = np.array([0, 0, 0])
+    # upper_white = np.array([0, 0, 255])
+    # mask = cv2.inRange(HSV_img, lower_white, upper_white)
+    white_pix = 0
+    # for i in range(200, 255):
+    #     white_pix += np.sum(edges == i)
     white_pix = np.sum(edges == 255)
+
+    # white_pix = cv2.countNonZero(mask)
 
     print('Number of white pixels:', white_pix)
     if white_pix > (SCROLL_COLORCNT_PCT/100)*(IMG_WIDTH*IMG_HEIGHT):
@@ -278,12 +288,15 @@ def isshifted(test_img, perfect_img):
         return "Image not clear "
 
 
-def Image_Rotation(test_img):
+def Image_Not_Rotated(test_img):
     '''
-    Returns The Image Rotation In Degrees
+    If Image Not Rotated Returns 1
+    If Image Rotated Returns 0
     '''
+    # test_img = cv2.resize(test_img, (100, 100))
     img_gray = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
     img_edges = cv2.Canny(img_gray, 100, 100, apertureSize=3)
+    # angle is divided by 360 so as to detect all lines in 360 degrees in the image
     lines = cv2.HoughLinesP(img_edges, 1, math.pi / 180.0,
                             100, minLineLength=100, maxLineGap=5)
 
@@ -292,6 +305,7 @@ def Image_Rotation(test_img):
         for [[x1, y1, x2, y2]] in lines:
             cv2.line(test_img, (x1, y1), (x2, y2), (255, 0, 0), 3)
             angle = math.degrees(math.atan2(y2 - y1, x2 - x1))
+            angle = round(angle)
             angles.append(angle)
     else:
         angle = 0
@@ -299,10 +313,14 @@ def Image_Rotation(test_img):
     # cv2.imshow("Detected lines", img_before)
     # key = cv2.waitKey(0)
 
-    median_angle = np.median(angles)
-    # img_rotated = ndimage.rotate(img_before, median_angle)
+    median_angle = abs(np.median(angles))
 
-    return median_angle
+    # img_rotated = ndimage.rotate(img_before, median_angle)
+    if median_angle > ROTATION_ANGLE_THRESHOLD_DEG:
+        # here we need to return 0
+        return 0
+    else:
+        return 1
 
 
 def Image_Horizontal_Shift(test_img, perfect_img):
@@ -352,7 +370,17 @@ def Image_Vertical_Shift(test_img, perfect_img):
 
 
 def Image_Not_Inverted(test_img, perfect_img):
-    pass
+    '''
+    If Image Inverted Returns 0
+    If Image Not Inverted Returns 1'''
+    test_img = cv2.rotate(test_img, cv2.ROTATE_180)
+    test_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
+    perfect_img = cv2.cvtColor(perfect_img, cv2.COLOR_BGR2GRAY)
+    ssimscore = round(ssim(test_img, perfect_img))
+    if ssimscore == 1:
+        return 0  # inverted
+    else:
+        return 1  # not inverted
 
 
 def Image_Not_Mirrored(test_img, perfect_img):
@@ -361,8 +389,10 @@ def Image_Not_Mirrored(test_img, perfect_img):
     If Image Mirrored: Returns 0
     '''
     try:
-        perfect_img = cv2.flip(perfect_img, 1)
-        score = ssim(test_img, perfect_img, multichannel=True)
+        test_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
+        perfect_img = cv2.cvtColor(perfect_img, cv2.COLOR_BGR2GRAY)
+        test_img = cv2.flip(test_img, 1)
+        score = ssim(test_img, perfect_img)
         if score >= MIRROR_THRESHOLD:
             return 0
         else:
@@ -372,7 +402,31 @@ def Image_Not_Mirrored(test_img, perfect_img):
 
 
 def Image_Not_Cropped_In_ROI(test_img, perfect_img):
-    pass
+    '''
+    If Image Cropped In Roi Returns 0
+    If Image Not Cropped In Roi Returns 1
+    '''
+    test_img_HSV = cv2.cvtColor(test_img, cv2.COLOR_BGR2HSV)
+    perfect_img_HSV = cv2.cvtColor(perfect_img, cv2.COLOR_BGR2HSV)
+    black_low = np.array([0, 0, 0])
+    black_high = np.array([180, 255, 20])
+    test_img_black_pix_mask = cv2.inRange(test_img_HSV, black_low, black_high)
+    perfect_img_black_pix_mask = cv2.inRange(
+        perfect_img_HSV, black_low, black_high)
+    test_img_black_pix_cnt = cv2.countNonZero(test_img_black_pix_mask)
+    perfect_img_black_pix_cnt = cv2.countNonZero(perfect_img_black_pix_mask)
+    # print(test_img_black_pix_cnt)
+    # print(perfect_img_black_pix_cnt)
+    if test_img_black_pix_cnt > perfect_img_black_pix_cnt:
+        diff = test_img_black_pix_cnt-perfect_img_black_pix_cnt
+        threshold = (NOT_CROPPED_IN_ROI_THRESHOLD_PCT/100) * \
+            perfect_img_black_pix_cnt
+        if diff > threshold:
+            return 1  # image is not in ROI
+        else:
+            return 0  # image is in ROI
+    else:
+        return 0  # image is in ROI
 
 
 def Image_Has_No_Noise_Staticlines_Scrolling(test_img, test_img_scrolled):
@@ -383,9 +437,9 @@ def Image_Has_No_Noise_Staticlines_Scrolling(test_img, test_img_scrolled):
     No_Noise = Image_Has_No_Noise(test_img)
     No_Staticlines = Image_Has_No_STATIC_LINES(test_img)
     No_Scrolling = Image_Not_Scrolled(test_img_scrolled)
-    # print(No_Noise)
-    # print(No_Staticlines)
-    # print(No_Scrolling)
+    print(No_Noise)
+    print(No_Staticlines)
+    print(No_Scrolling)
     if No_Noise and No_Staticlines and No_Scrolling:
         return 1
     else:
@@ -405,7 +459,19 @@ def SSIM_score(test_img, perfect_img):
         return 0
 
 
-def BRISQUE_score(test_img_path):
-    brisquescore = brisque_obj.get_score(test_img_path)
-    brisquescore = "{:.2f}".format(brisquescore)
-    return brisquescore
+def BRISQUE_score(test_img_path, perfect_img_path):
+    test_img_brisquescore = brisque_obj.get_score(test_img_path)
+    test_img_brisquescore = round(test_img_brisquescore)
+    perfect_img_brisquescore = brisque_obj.get_score(perfect_img_path)
+    perfect_img_brisquescore = round(perfect_img_brisquescore)
+    if test_img_brisquescore > perfect_img_brisquescore:
+        # here we need to chk the threshold
+        threshold = (BRISQUE_SCORE_THRESHOLD_PCT/100)*perfect_img_brisquescore
+        diff = (test_img_brisquescore-perfect_img_brisquescore)
+        if diff > threshold:
+            return 0  # bad image quality
+        else:
+            return 1  # good image quality
+        pass
+    else:
+        return 1

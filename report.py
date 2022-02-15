@@ -76,22 +76,45 @@ def generate_report(camid, test_img_path, perfect_img_path):
     #                       ssim_score(test_img, perfect_img),
     #                       brisque_score(test_img_path)
     #                       ]
-    image_test_results = [Image_Not_Inverted(test_img, perfect_img),
-                          Image_Not_Mirrored(test_img, perfect_img),
-                          Image_Rotation(test_img),
-                          Image_Horizontal_Shift(
-                              test_img_shift, perfect_img_shift),
-                          Image_Vertical_Shift(
-                              test_img_shift, perfect_img_shift),
-                          Image_Not_Cropped_In_ROI(test_img, perfect_img),
-                          Image_Has_No_Noise_Staticlines_Scrolling(
-                              test_img, test_img_scrolled),
-                          SSIM_score(test_img_SSIM, perfect_img_SSIM),
-                          BRISQUE_score(test_img_path)
-                          ]
-    image_test_results = [camid] + image_test_results
-    save_results(image_test_results)
-    return image_test_results
+    ssim_score_pct = ssim(test_img_SSIM, perfect_img_SSIM)
+    # ssim_score_pct = float(":.2f".format(ssim_score_pct))
+    ssim_score_pct = float('{:.2f}'.format(ssim_score_pct))*100
+    # ssim_score_pct = round(int(ssim_score_pct))
+    print((ssim_score_pct))
+    if ssim_score_pct >= SSIM_SCORE_THRESHOLD_PCT:
+        # return 1 for all tests in the code
+        image_test_results = [1,
+                              1,
+                              1,
+                              1,
+                              1,
+                              1,
+                              1,
+                              1,
+                              1
+                              ]
+        image_test_results = [camid] + image_test_results
+        return image_test_results
+
+    else:
+        # check all the tests
+        pass
+        image_test_results = [Image_Not_Inverted(test_img, perfect_img),
+                              Image_Not_Mirrored(test_img, perfect_img),
+                              Image_Not_Rotated(test_img_rotate),
+                              Image_Horizontal_Shift(
+            test_img_shift, perfect_img_shift),
+            Image_Vertical_Shift(
+            test_img_shift, perfect_img_shift),
+            Image_Not_Cropped_In_ROI(test_img, perfect_img),
+            Image_Has_No_Noise_Staticlines_Scrolling(
+            test_img, test_img_scrolled),
+            SSIM_score(test_img_SSIM, perfect_img_SSIM),
+            BRISQUE_score(test_img_path, perfect_img_path)
+        ]
+        image_test_results = [camid] + image_test_results
+        save_results(image_test_results)
+        return image_test_results
 
 
 def save_results(image_test_results):
