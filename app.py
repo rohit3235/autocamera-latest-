@@ -27,14 +27,13 @@ class Places(Resource):
         test_results = generate_report(
             camid, image1test_path, image2perfect_path)
         test_names = ['CamID',
-                      'Image_Not_Blur',
                       'Image_Not_Inverted',
                       'Image_Not_Mirrored',
                       'Image_Not_Rotated',
                       'Image_Horizontal_Shift',
                       'Image_Vertical_Shift',
                       'Image_Not_Cropped_In_ROI',
-                      'Image_Has_No_Noise_Staticlines_Scrolling',
+                      'Image_Has_No_Noise_Staticlines_Scrolling_Blur',
                       'SSIM_Score',
                       'Brisque_Score'
                       ]

@@ -52,7 +52,6 @@ def generate_report(camid, test_img_path, perfect_img_path):
         image_test_results = [1,
                               1,
                               1,
-                              1,
                               0,
                               0,
                               0,
@@ -67,17 +66,17 @@ def generate_report(camid, test_img_path, perfect_img_path):
     else:
         # check all the tests
         pass
-        image_test_results = [Image_Not_Blur(test_img),
-                              Image_Not_Inverted(test_img, perfect_img),
-                              Image_Not_Mirrored(test_img, perfect_img),
-                              Image_Not_Rotated(test_img_rotate),
-                              Image_Horizontal_Shift(
-            test_img_shift, perfect_img_shift),
+        image_test_results = [
+            Image_Not_Inverted(test_img, perfect_img),
+            Image_Not_Mirrored(test_img, perfect_img),
+            Image_Not_Rotated(test_img_rotate),
+            Image_Horizontal_Shift(
+                test_img_shift, perfect_img_shift),
             Image_Vertical_Shift(
-            test_img_shift, perfect_img_shift),
+                test_img_shift, perfect_img_shift),
             Image_Not_Cropped_In_ROI(test_img, perfect_img),
-            Image_Has_No_Noise_Staticlines_Scrolling(
-            test_img, test_img_scrolled),
+            Image_Has_No_Noise_Staticlines_Scrolling_Blur(
+                test_img, test_img_scrolled),
             SSIM_score(test_img_SSIM, perfect_img_SSIM),
             BRISQUE_score(test_img_path)
         ]
