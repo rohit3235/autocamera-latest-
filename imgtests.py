@@ -1,17 +1,17 @@
-# -*- coding: utf-8 -*-
 from configmain import *
-from skimage.metrics import structural_similarity as ssim
 '''
-return 1 if test is passed
+Return 1 If Test Is Passed
 
-return 0 if test is failed
+Return 0 If Test Is Failed
 '''
+
 warnings.filterwarnings('ignore')
-
-# Function to Show Image and Check if image is Blur
 
 
 def variance_of_laplacian(image):
+    '''
+    Returns The Variance Of Laplcian Score Of The Image
+    '''
     return cv2.Laplacian(image, cv2.CV_64F).var()
 
 
@@ -29,8 +29,6 @@ def Image_Not_Blur(image):
     else:
         # THRESHOLD_BLUR is above 150,not blur , return 1 -pass
         return 1
-
-# Function to check if the captured image is noisy or not
 
 
 def Image_Has_No_Noise(img):
@@ -52,8 +50,6 @@ def Image_Has_No_Noise(img):
     else:
         return 0  # noise present
 
-# Function to check if the captured image is scrolled or not
-
 
 def Image_Not_Scrolled(img):
     '''
@@ -61,22 +57,10 @@ def Image_Not_Scrolled(img):
     If Image Scrolled Returns 0
     '''
     img = cv2.resize(img, (100, 100))
-
     img_blur = cv2.GaussianBlur(img, (3, 3), 0)
-
     edges = cv2.Canny(image=img_blur, threshold1=100, threshold2=200)
-
-    # HSV_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-    # lower_white = np.array([0, 0, 0])
-    # upper_white = np.array([0, 0, 255])
-    # mask = cv2.inRange(HSV_img, lower_white, upper_white)
     white_pix = 0
-    # for i in range(200, 255):
-    #     white_pix += np.sum(edges == i)
     white_pix = np.sum(edges == 255)
-
-    # white_pix = cv2.countNonZero(mask)
 
     print('Number of white pixels:', white_pix)
     if white_pix > (SCROLL_COLORCNT_PCT/100)*(IMG_WIDTH*IMG_HEIGHT):
@@ -92,10 +76,6 @@ def MSE(imageA, imageB):
     err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
     err /= float(imageA.shape[0] * imageA.shape[1])
     return err
-
-    # Function to check if the captured image is aligned or not using SSIM - Structural Similarity Index Measure
-
-# this is not working as expected
 
 
 def isaligned(test_img, perfect_img):
@@ -168,11 +148,6 @@ def checkscale(test_img):
         return "Image Is Rgb Scale."
 
 
-# Function to check if the captured image is mirror image of perfect image or not
-
-# Function to detect and return the number of blackspots
-
-
 def blackspots(path):
     '''
     Returns The Number Of Blackspots In The Image
@@ -191,11 +166,6 @@ def blackspots(path):
         if s1 < cv2.contourArea(cnt) < s2:
             xcnts.append(cnt)
     return len(xcnts)
-
-   # Function to get the brisque score - Range 0 is best, 100 is worst
-
-
-# this is working as expected
 
 
 def Image_Has_No_STATIC_LINES(test_img):
@@ -241,8 +211,6 @@ def detect_obj(img):
                                     )
     for (x, y, w, h) in bbox:
         objDetected = True
-        # cv2.rectangle(img, (x, y),
-        #               (x + w, y + h), (255, 0, 255), 2)
         return (x, y, w, h)
     if not objDetected:
         return (0, 0, 0, 0)
@@ -293,34 +261,23 @@ def Image_Not_Rotated(test_img):
     If Image Not Rotated Returns 1
     If Image Rotated Returns 0
     '''
-    # test_img = cv2.resize(test_img, (100, 100))
-    img_gray = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
-    img_edges = cv2.Canny(img_gray, 100, 100, apertureSize=3)
-    # angle is divided by 360 so as to detect all lines in 360 degrees in the image
-    lines = cv2.HoughLinesP(img_edges, 1, math.pi / 180.0,
-                            100, minLineLength=100, maxLineGap=5)
-
-    angles = []
-    if lines is not None:
-        for [[x1, y1, x2, y2]] in lines:
-            cv2.line(test_img, (x1, y1), (x2, y2), (255, 0, 0), 3)
+    try:
+        img_gray = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
+        img_edges = cv2.Canny(img_gray, 100, 100, apertureSize=3)
+        lines = cv2.HoughLinesP(img_edges, 1, math.pi / 180.0,
+                                100, minLineLength=100, maxLineGap=5)
+        angles = []
+        for x1, y1, x2, y2 in lines[0]:
             angle = math.degrees(math.atan2(y2 - y1, x2 - x1))
-            angle = round(angle)
             angles.append(angle)
+        median_angle = np.median(angles)
+        rotated_angle = abs(round(median_angle))
+    except:
+        return 0  # image rotated
+    if rotated_angle > ROTATION_ANGLE_THRESHOLD_DEG:
+        return 0  # image is rotated > than threshold
     else:
-        angle = 0
-        angles.append(angle)
-    # cv2.imshow("Detected lines", img_before)
-    # key = cv2.waitKey(0)
-
-    median_angle = abs(np.median(angles))
-
-    # img_rotated = ndimage.rotate(img_before, median_angle)
-    if median_angle > ROTATION_ANGLE_THRESHOLD_DEG:
-        # here we need to return 0
-        return 0
-    else:
-        return 1
+        return 1  # image is not rotated > than threshold
 
 
 def Image_Horizontal_Shift(test_img, perfect_img):
@@ -343,7 +300,7 @@ def Image_Horizontal_Shift(test_img, perfect_img):
             return 1
         return 0
     else:
-        return "IMAGE NOT CLEAR"
+        return 1
 
 
 def Image_Vertical_Shift(test_img, perfect_img):
@@ -366,7 +323,7 @@ def Image_Vertical_Shift(test_img, perfect_img):
             return 1
         return 0
     else:
-        return "IMAGE NOT CLEAR"
+        return 1
 
 
 def Image_Not_Inverted(test_img, perfect_img):
@@ -415,8 +372,6 @@ def Image_Not_Cropped_In_ROI(test_img, perfect_img):
         perfect_img_HSV, black_low, black_high)
     test_img_black_pix_cnt = cv2.countNonZero(test_img_black_pix_mask)
     perfect_img_black_pix_cnt = cv2.countNonZero(perfect_img_black_pix_mask)
-    # print(test_img_black_pix_cnt)
-    # print(perfect_img_black_pix_cnt)
     if test_img_black_pix_cnt > perfect_img_black_pix_cnt:
         diff = test_img_black_pix_cnt-perfect_img_black_pix_cnt
         threshold = (NOT_CROPPED_IN_ROI_THRESHOLD_PCT/100) * \
@@ -452,26 +407,14 @@ def SSIM_score(test_img, perfect_img):
     Returns The SSIM Score Of Both Images
     '''
     ssimscore = ssim(test_img, perfect_img)
-    ssimscore = float('{:.2f}'.format(ssimscore))*100
-    if ssimscore > SSIM_SCORE_THRESHOLD_PCT:
-        return 1
-    else:
-        return 0
+    ssimscore = (round(ssimscore, 2))
+    return (ssimscore)
 
 
-def BRISQUE_score(test_img_path, perfect_img_path):
+def BRISQUE_score(test_img_path):
+    '''
+    Returns The BRISQUE Score Of The Image
+    '''
     test_img_brisquescore = brisque_obj.get_score(test_img_path)
     test_img_brisquescore = round(test_img_brisquescore)
-    perfect_img_brisquescore = brisque_obj.get_score(perfect_img_path)
-    perfect_img_brisquescore = round(perfect_img_brisquescore)
-    if test_img_brisquescore > perfect_img_brisquescore:
-        # here we need to chk the threshold
-        threshold = (BRISQUE_SCORE_THRESHOLD_PCT/100)*perfect_img_brisquescore
-        diff = (test_img_brisquescore-perfect_img_brisquescore)
-        if diff > threshold:
-            return 0  # bad image quality
-        else:
-            return 1  # good image quality
-        pass
-    else:
-        return 1
+    return test_img_brisquescore
