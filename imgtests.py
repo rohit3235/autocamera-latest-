@@ -33,8 +33,8 @@ def Image_Not_Blur(image):
 
 def Image_Has_No_Noise(img):
     '''
-    If No Noise In Image Returns 1
-    If Noise In Image Return 0
+    If No Noise In Image Returns 1 = pass
+    If Noise In Image Return 0 = fail
     '''
     # Convert image to HSV color space
     image = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -44,11 +44,13 @@ def Image_Has_No_Noise(img):
     p = NOISE_SAT_THRESHOLD_PCT
     s_perc = np.sum(s[int(p * 255):-1]) / np.prod(image.shape[0:2])
     # Percentage threshold; above: valid image, below: noise
-    s_thr = NOISE_SAT_THRESHOLD
+    s_thr = NOISE_SAT_THRESHOLD  # generally 0.5 used
+    print(s_perc)
+    print(s_thr)
     if s_perc > s_thr:
-        return 1  # no noise present
-    else:
         return 0  # noise present
+    else:
+        return 1  # no noise present
 
 
 def Image_Not_Scrolled(img):
@@ -360,8 +362,8 @@ def Image_Not_Mirrored(test_img, perfect_img):
 
 def Image_Not_Cropped_In_ROI(test_img, perfect_img):
     '''
-    If Image Cropped In Roi Returns 0
-    If Image Not Cropped In Roi Returns 1
+    There Is Trim In The ROI Region, Image Is Not Cropped = 0
+    There Is No Trim In the ROI Region, Image Is Cropped = 1
     '''
     test_img_HSV = cv2.cvtColor(test_img, cv2.COLOR_BGR2HSV)
     perfect_img_HSV = cv2.cvtColor(perfect_img, cv2.COLOR_BGR2HSV)
@@ -377,14 +379,14 @@ def Image_Not_Cropped_In_ROI(test_img, perfect_img):
         threshold = (NOT_CROPPED_IN_ROI_THRESHOLD_PCT/100) * \
             perfect_img_black_pix_cnt
         if diff > threshold:
-            return 1  # image is not in ROI
+            return 0  # there is trim in the ROI region, image is not cropped = fail
         else:
-            return 0  # image is in ROI
+            return 1  # there is no trim in the ROI region, image is cropped = pass
     else:
-        return 0  # image is in ROI
+        return 1  # there is no trim in the ROI region, image is cropped = pass
 
 
-def Image_Has_No_Noise_Staticlines_Scrolling(test_img, test_img_scrolled):
+def Image_Has_No_Noise_Staticlines_Scrolling_Blur(test_img, test_img_scrolled):
     '''
     If No Noise, Staticlines, Scrolling Present: Returns 1
     Else: Returns 0
@@ -392,10 +394,8 @@ def Image_Has_No_Noise_Staticlines_Scrolling(test_img, test_img_scrolled):
     No_Noise = Image_Has_No_Noise(test_img)
     No_Staticlines = Image_Has_No_STATIC_LINES(test_img)
     No_Scrolling = Image_Not_Scrolled(test_img_scrolled)
-    print(No_Noise)
-    print(No_Staticlines)
-    print(No_Scrolling)
-    if No_Noise and No_Staticlines and No_Scrolling:
+    No_Blur = Image_Not_Blur(test_img)
+    if No_Noise and No_Staticlines and No_Scrolling and No_Blur:
         return 1
     else:
         return 0
